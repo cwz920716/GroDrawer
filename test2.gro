@@ -1,0 +1,31 @@
+include gro
+
+chemostat ( true );
+set ( "dt", 0.075 );
+
+nutrient := 1;
+kinit := 0.25;
+dk := 0.05;
+
+fun cost e n . 0.2 * e * n / ( 50.0 + n );
+fun benefit e n . 0.002 * e / ( 1.0 - 0.01 * e );
+fun fitness e n . cost e n - benefit e n;
+
+program evolver() := {
+
+  p := [ k := kinit ];
+  E := 25;
+  t := 0;
+
+  rate ( p.k * volume ) : { E := E + 1 }
+  rate ( 0.05 * E ) : { E := E - 1 }
+
+  true : { set ( "ecoli_growth_rate", 0.001 + fitness E nutrient ), t := t + dt }
+
+  daughter : {
+   p.k := p.k + dk * ( rand ( 1000 ) - 500 ) / 1000.0
+  }
+
+};
+
+ecoli ( [ x := 0, y := 0 ], program evolver() );
