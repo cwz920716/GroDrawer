@@ -84,15 +84,15 @@ program receiver() := {
         cfp := 0
     }
 
-    close (get_signal(ehl)) (get_signal(fhl)) >= 0.75 & get_signal(ehl) > get_signal(fhl) & p.t > 250 : {
+    close (get_signal(ehl)) (get_signal(fhl)) >= 0.75 & get_signal(ehl) > get_signal(fhl) & p.t > 150 : {
         die();
     }
 
-    close (get_signal(ahl)) (get_signal(bhl)) >= 0.75 & get_signal(bhl) > get_signal(ahl) & p.t > 250 : {
+    close (get_signal(ahl)) (get_signal(bhl)) >= 0.75 & get_signal(bhl) > get_signal(ahl) & p.t > 150 : {
         die();
     }
 
-    close (get_signal(chl)) (get_signal(dhl)) >= 0.75 & get_signal(dhl) > get_signal(chl) & p.t > 250 : {
+    close (get_signal(chl)) (get_signal(dhl)) >= 0.75 & get_signal(dhl) > get_signal(chl) & p.t > 150 : {
         die();
     }
 
