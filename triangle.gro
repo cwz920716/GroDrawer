@@ -6,6 +6,26 @@ chl := signal(5, 0.1);
 dhl := signal(5, 0.1);
 ehl := signal(5, 0.1);
 fhl := signal(5, 0.1);
+ghl := signal(5, 0.1);
+hhl := signal(5, 0.1);
+ihl := signal(5, 0.1);
+jhl := signal(5, 0.1);
+khl := signal(5, 0.1);
+lhl := signal(5, 0.1);
+mhl := signal(5, 0.1);
+nhl := signal(5, 0.1);
+ohl := signal(5, 0.1);
+phl := signal(5, 0.1);
+qhl := signal(5, 0.1);
+rhl := signal(5, 0.1);
+shl := signal(5, 0.1);
+thl := signal(5, 0.1);
+uhl := signal(5, 0.1);
+vhl := signal(5, 0.1);
+whl := signal(5, 0.1);
+xhl := signal(5, 0.1);
+yhl := signal(5, 0.1);
+zhl := signal(5, 0.1);
 
 k := 10; // reporter scaling factor
 
@@ -13,9 +33,9 @@ MAX_SIG := 0.0125;
 
 L := 0.5;
 
-L2 := 0.25;
+L2 := 0.375;
 
-// set("dt", 0.05);
+set("dt", 0.05);
 
 fun abs2 n . if n < 0 then -n else n end;
 
@@ -36,15 +56,15 @@ program receiver() := {
     cfp := 0;
     p := [ t := 0 ];
 
-    close (get_signal(ehl)) (get_signal(fhl)) < 0.5 & get_signal(ehl) >= L2 : {
+    close (get_signal(ehl)) (get_signal(fhl)) <= 0.5 & get_signal(ehl) >= L2 : {
         cfp := 800;
     }
 
-    close (get_signal(chl)) (get_signal(dhl)) < 0.5 & get_signal(chl) >= L : {
+    close (get_signal(chl)) (get_signal(dhl)) <= 0.5 & get_signal(chl) >= L : {
         gfp := 800;
     }
 
-    close (get_signal(ahl)) (get_signal(bhl)) < 0.5 & get_signal(ahl) >= L : {
+    close (get_signal(ahl)) (get_signal(bhl)) <= 0.5 & get_signal(ahl) >= L : {
         rfp := 800;
     }
 
@@ -72,27 +92,27 @@ program receiver() := {
         cfp := 0
     }
 
-    close (get_signal(chl)) (get_signal(dhl)) >= 0.5 : {
+    close (get_signal(chl)) (get_signal(dhl)) > 0.5 : {
         gfp := 0
     }
 
-    close (get_signal(ahl)) (get_signal(bhl)) >= 0.5 : {
+    close (get_signal(ahl)) (get_signal(bhl)) > 0.5 : {
         rfp := 0
     }
 
-    close (get_signal(ehl)) (get_signal(fhl)) >= 0.5 : {
+    close (get_signal(ehl)) (get_signal(fhl)) > 0.5 : {
         cfp := 0
     }
 
-    close (get_signal(ehl)) (get_signal(fhl)) >= 0.75 & get_signal(ehl) > get_signal(fhl) & p.t > 150 : {
+    close (get_signal(ehl)) (get_signal(fhl)) > 0.5 & get_signal(ehl) > get_signal(fhl) & p.t > 150 : {
         die();
     }
 
-    close (get_signal(ahl)) (get_signal(bhl)) >= 0.75 & get_signal(bhl) > get_signal(ahl) & p.t > 150 : {
+    close (get_signal(ahl)) (get_signal(bhl)) > 0.5 & get_signal(bhl) > get_signal(ahl) & p.t > 150 : {
         die();
     }
 
-    close (get_signal(chl)) (get_signal(dhl)) >= 0.75 & get_signal(dhl) > get_signal(chl) & p.t > 150 : {
+    close (get_signal(chl)) (get_signal(dhl)) > 0.5 & get_signal(dhl) > get_signal(chl) & p.t > 150 : {
         die();
     }
 
@@ -113,6 +133,19 @@ program main() := {
         set_signal(dhl,0,200,100);
         set_signal(ehl,-131,-131,100);
         set_signal(fhl,81,81,100);
+        set_signal(ghl,81,81,100);
+        set_signal(hhl,81,81,100);
+        set_signal(ihl,81,81,100);
+        set_signal(jhl,81,81,100);
+        set_signal(khl,81,81,100);
+        set_signal(lhl,81,81,100);
+        set_signal(mhl,81,81,100);
+        set_signal(nhl,81,81,100);
+        set_signal(ohl,81,81,100);
+        set_signal(phl,81,81,100);
+        set_signal(qhl,81,81,100);
+        set_signal(rhl,81,81,100);
+        set_signal(shl,81,81,100);
     }
 };
 
