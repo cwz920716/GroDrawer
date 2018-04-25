@@ -173,8 +173,8 @@ class Line(object):
         self._v1 = v1
         if self.length < 0.5:
             print("WARNING: line length < 0.5 is hard to visualize using gro.")
-        if self.length > 3.0:
-            print("WARNING: line length > 3.0 should be splitted.")
+        if self.length > 5.0:
+            print("WARNING: line length > 5.0 is too large for gro screen.")
         self._color = color
 
     @property
@@ -220,8 +220,32 @@ class Line(object):
         return [outer_s, inner_s]
 
     def signalStrength(self):
-        if (self.length < 0.5):
-            return 
+        l = self.length
+        if l <= 0.5:
+            return 0.7
+        elif l > 0.5 and l <= 1.0:
+            x = (l - 0.5) / (1.0 - 0.5)
+            return lerp(0.7, 0.5, x)
+        elif l > 1.0 and l <= 1.5:
+            x = (l - 1.0) / (1.5 - 1.0)
+            return lerp(0.5, 0.375, x)
+        elif l > 1.5 and l <= 2.0:
+            x = (l - 1.5) / (2.0 - 1.5)
+            return lerp(0.375, 0.25, x)
+        elif l > 2.0 and l <= 2.5:
+            x = (l - 2.0) / (2.5 - 2.0)
+            return lerp(0.25, 0.175, x)
+        elif l > 2.5 and l <= 3.0:
+            x = (l - 2.5) / (3.0 - 2.5)
+            return lerp(0.175, 0.1, x)
+        elif l > 3.0 and l <= 4.0:
+            x = (l - 3.0) / (4.0 - 3.0)
+            return lerp(0.1, 0.01, x)
+        elif l > 4.0 and l <= 5.0:
+            x = (l - 4.0) / (5.0 - 4.0)
+            return lerp(0.01, 0.005, x)
+        else:
+            return 0.005
 
     def __repr__(self):
         return self.__str__()
@@ -241,9 +265,10 @@ class Canvas(object):
         self.lines.append(Line(v0, v1, color))
         return self
 
-x = Point(0, 1)
-y = Point(0, -1)
+x = Point(0, 1.25)
+y = Point(0, -0.5)
 l = Line(y, x)
 x = x / 2
 print(l)
 print(l.signals())
+print(l.signalStrength())
