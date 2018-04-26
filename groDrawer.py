@@ -158,6 +158,10 @@ class Vec2(object):
         c = b - a
         return c.square_length()
 
+    @property
+    def groPosition(self):
+        return self * 150
+
 class Point(Vec2):
     pass
 
@@ -433,17 +437,27 @@ class GroPrinter(object):
         self.sstream += self.line_begin + "{0} := signal(5, 0.1);".format(self.signal_name(sid)) + self.line_end
         return self
 
+    def init_signal(self, sid, s):
+        self.sstream += self.line_begin + "set_signal({0}, {1}, {2}, 100);".format(self.signal_name(sid), s.groPosition.x, s.groPosition.y) + self.line_end
+        return self
+
     def declare_signals_for_lines(self, lines):
         for l in lines:
             self.declare_signal(l.outer_signal_id)
             self.declare_signal(l.inner_signal_id)
+        self.blank_line()
         return self
 
-    def init_signals_for_lines(self, line):
+    def init_signals_for_lines(self, lines):
         self.start_program("main")
-        self.start_command(self.predicate_always))
+        self.start_command(self.predicate_always)
+        for l in lines:
+            signals = l.signals()
+            self.init_signal(l.outer_signal_id, signals[0])
+            self.init_signal(l.inner_signal_id, signals[1])
         self.end_command()
         self.end_program()
+        self.blank_line()
         return self
 
 class Canvas(object):
@@ -469,10 +483,12 @@ class Canvas(object):
         self.lines.append(l)
         return self
 
-x = Point(0, 1.25)
-y = Point(0, -0.5)
+x = Point(0, 1.0)
+y = Point(0, -1.0)
 l = Line(y, x)
-l.id = 2
+l.id = 0
+
+print(l.signals())
 
 p = GroPrinter()
 preds = p.line_predicates(l)
@@ -480,6 +496,8 @@ p.genPrologue().declare_signals_for_lines([l])
 p.start_program("receiver").declare_colors().declare_timer()
 p.start_command(preds[0]).set_color(l.color).end_command().blank_line()
 p.start_command(preds[1]).unset_color(l.color).end_command().blank_line()
-p.end_program()
+p.end_program().blank_line()
+
+p.init_signals_for_lines([l])
 
 print(p)
