@@ -17,10 +17,12 @@ fun close x y .
         end
     end;
 
-MAX_DIFF = 0.5;
+MAX_DIFF := 0.5;
 
 signal0 := signal(5, 0.1);
 signal1 := signal(5, 0.1);
+signal2 := signal(5, 0.1);
+signal3 := signal(5, 0.1);
 
 program canvas() := {
 
@@ -34,20 +36,26 @@ program canvas() := {
 
     true : { p.t := p.t + dt }
 
-    get_signal(signal0) >= 0.25 & get_signal(signal1) >= 0.25 & close (get_signal(signal0)) (get_signal(signal1)) <= MAX_DIFF := {
+    get_signal(signal0) >= 0.25 & get_signal(signal1) >= 0.25 & close (get_signal(signal0)) (get_signal(signal1)) <= MAX_DIFF : {
         gfp := 800;
     }
 
-    get_signal(signal0) < 0.25 | get_signal(signal1) < 0.25 | close (get_signal(signal0)) (get_signal(signal1)) > MAX_DIFF := {
+    get_signal(signal2) >= 0.25 & get_signal(signal3) >= 0.25 & close (get_signal(signal2)) (get_signal(signal3)) <= MAX_DIFF : {
+        gfp := 800;
+    }
+
+    ( get_signal(signal0) < 0.25 | get_signal(signal1) < 0.25 | close (get_signal(signal0)) (get_signal(signal1)) > MAX_DIFF ) & ( get_signal(signal2) < 0.25 | get_signal(signal3) < 0.25 | close (get_signal(signal2)) (get_signal(signal3)) > MAX_DIFF ) : {
         gfp := 0;
     }
 
 };
 
 program main() := {
-    true := {
+    true : {
         set_signal(signal0, -150.0, 0.0, 100);
         set_signal(signal1, 150.0, 0.0, 100);
+        set_signal(signal2, 0.0, -150.0, 100);
+        set_signal(signal3, 0.0, 150.0, 100);
     }
 };
 

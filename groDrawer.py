@@ -294,7 +294,7 @@ fun close x y .
         end
     end;
 
-MAX_DIFF = 0.5;
+MAX_DIFF := 0.5;
 
 """
 
@@ -417,7 +417,7 @@ class GroPrinter(object):
         return "true"
 
     def start_command(self, pred):
-        self.sstream += self.line_begin + pred + " := {" + self.line_end
+        self.sstream += self.line_begin + pred + " : {" + self.line_end
         self.indent += 1
         return self
 
