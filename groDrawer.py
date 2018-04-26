@@ -176,6 +176,15 @@ class Line(object):
         if self.length > 5.0:
             print("WARNING: line length > 5.0 is too large for gro screen.")
         self._color = color
+        self._id = -1
+
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self, i):
+        self._id = i
 
     @property
     def v0(self):
@@ -219,6 +228,15 @@ class Line(object):
         inner_s = self.center - d
         return [outer_s, inner_s]
 
+    @property
+    def outer_signal_id(self):
+        return 2 * self.id
+
+    @property
+    def inner_signal_id(self):
+        return self.outer_signal_id + 1
+
+    @property
     def signalStrength(self):
         l = self.length
         if l <= 0.5:
@@ -273,6 +291,15 @@ MAX_DIFF = 0.5;
 
 """
 
+groColors = """
+    gfp := 0;
+    rfp := 0;
+    bfp := 0;
+    cfp := 0;
+    yfp := 0;
+
+"""
+
 class GroPrinter(object):
     def __init__(self):
         self._sstream = ''
@@ -324,9 +351,42 @@ class GroPrinter(object):
     def new_line(self):
         return self.line_end
 
+    def blank_line(self):
+        self.sstream += self.new_line
+        return self
+
     def start_program(self, prog):
         self.sstream += self.line_begin + "program {0}() := {{".format(prog) + self.line_end
         self.indent += 1
+        return self
+
+    def declare_colors(self):
+        self.sstream += groColors
+        return self
+
+    def color2fluorescent(self, c):
+        c = c.lower()
+        if c == "red":
+            return "rfp"
+        elif c == "blue":
+            return "bfp"
+        elif c == "yellow":
+            return "yfp"
+        elif c == "cyan":
+            return "cfp"
+        else:
+            return "gfp"
+
+    def set_color(self, c):
+        self.sstream += self.line_begin + "{0} := 800;".format(self.color2fluorescent(c)) + self.line_end
+        return self
+
+    def unset_color(self, c):
+        self.sstream += self.line_begin + "{0} := 0;".format(self.color2fluorescent(c)) + self.line_end
+        return self
+
+    def die(self):
+        self.sstream += self.line_begin + "die();" + self.line_end
         return self
 
     def declare_timer(self):
@@ -346,7 +406,45 @@ class GroPrinter(object):
         return "true"
 
     def start_command(self, pred):
-        ???
+        self.sstream += self.line_begin + pred + " := {" + self.line_end
+        self.indent += 1
+        return self
+
+    def end_command(self):
+        self.indent -= 1
+        self.sstream += self.line_begin + "}" + self.line_end
+        return self
+
+    def signal_name(self, s):
+        return "signal" + str(s)
+
+    def line_predicates(self, line):
+        p1 = "get_signal({0}) >= {2} & get_signal({1}) >= {2} & close (get_signal({0})) (get_signal({1})) <= MAX_DIFF".format(self.signal_name(line.outer_signal_id), self.signal_name(line.inner_signal_id), line.signalStrength)
+        p2 = "get_signal({0}) < {2} | get_signal({1}) < {2} | close (get_signal({0})) (get_signal({1})) > MAX_DIFF".format(self.signal_name(line.outer_signal_id), self.signal_name(line.inner_signal_id), line.signalStrength)
+        return [p1, p2]
+
+    def intersect(self, preds):
+        return "( " + " ) & ( ".join(preds) + " )"
+
+    def union(self, preds):
+        return "( " + " ) | ( ".join(preds) + " )"
+
+    def declare_signal(self, sid):
+        self.sstream += self.line_begin + "{0} := signal(5, 0.1);".format(self.signal_name(sid)) + self.line_end
+        return self
+
+    def declare_signals_for_lines(self, lines):
+        for l in lines:
+            self.declare_signal(l.outer_signal_id)
+            self.declare_signal(l.inner_signal_id)
+        return self
+
+    def init_signals_for_lines(self, line):
+        self.start_program("main")
+        self.start_command(self.predicate_always))
+        self.end_command()
+        self.end_program()
+        return self
 
 class Canvas(object):
     def __init__(self):
@@ -361,15 +459,27 @@ class Canvas(object):
     def program(self):
         return self._program
 
+    @property
+    def num_lines(self):
+        return len(self.lines)
+
     def drawLine(self, v0, v1, color='green'):
-        self.lines.append(Line(v0, v1, color))
+        l = Line(v0, v1, color)
+        l.id = num_lines
+        self.lines.append(l)
         return self
 
 x = Point(0, 1.25)
 y = Point(0, -0.5)
 l = Line(y, x)
+l.id = 2
 
 p = GroPrinter()
-p.genPrologue().start_program("receiver").declare_timer()
+preds = p.line_predicates(l)
+p.genPrologue().declare_signals_for_lines([l])
+p.start_program("receiver").declare_colors().declare_timer()
+p.start_command(preds[0]).set_color(l.color).end_command().blank_line()
+p.start_command(preds[1]).unset_color(l.color).end_command().blank_line()
 p.end_program()
+
 print(p)
