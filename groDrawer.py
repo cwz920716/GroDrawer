@@ -432,9 +432,17 @@ class GroPrinter(object):
         return [p1, p2]
 
     def intersect(self, preds):
+        if len(preds) == 0:
+            return "true"
+        elif len(preds) == 1:
+            return preds[0]
         return "( " + " ) & ( ".join(preds) + " )"
 
     def union(self, preds):
+        if len(preds) == 0:
+            return "true"
+        elif len(preds) == 1:
+            return preds[0]
         return "( " + " ) | ( ".join(preds) + " )"
 
     def declare_signal(self, sid):
@@ -496,17 +504,18 @@ class Canvas(object):
         p = self.program
         p.genPrologue().declare_signals_for_lines(self.lines)
         p.start_program(self.name).declare_colors().declare_timer()
+        unset_color_map = {}
+        for l in self.lines:
+            preds = p.line_predicates(l)
+            c = l.color
+            p.start_command(preds[0]).set_color(c).end_command().blank_line()
+            if c not in unset_color_map:
+                unset_color_map[c] = []
+            unset_color_map[c].append(preds[1])
+        for c in unset_color_map:
+            pred = p.intersect(unset_color_map[c])
+            p.start_command(pred).unset_color(c).end_command().blank_line()
         p.end_program().blank_line()
         p.init_signals_for_lines(self.lines)
         p.launch_program(self.name)
         return p
-
-x = Point(0, 1.0)
-y = Point(0, -1.0)
-
-drawer = Canvas()
-drawer.drawLine(y, x)
-
-p = drawer.codegen()
-
-print(p)
