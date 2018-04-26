@@ -3,6 +3,9 @@ import math
 import random
 import numpy as np
 
+def round3(x):
+    return float("{0:.3f}".format(x))
+
 class Vec2(object):
     def __init__(self, x, y):
         self._x = float(x)
@@ -169,7 +172,7 @@ class Point(Vec2):
     Linear intERPolate between a and b for x ranging from 0 to 1
 """
 def lerp(a, b, x):
-    return a * (1.0 - x) + b * x
+    return round3(a * (1.0 - x) + b * x)
 
 class Line(object):
     def __init__ (self, v0, v1, color = 'green'):
@@ -453,7 +456,7 @@ class GroPrinter(object):
         return self
 
     def init_signal(self, sid, s):
-        self.sstream += self.line_begin + "set_signal({0}, {1}, {2}, 100);".format(self.signal_name(sid), s.groPosition.x, s.groPosition.y) + self.line_end
+        self.sstream += self.line_begin + "set_signal({0}, {1}, {2}, 100);".format(self.signal_name(sid), round3(s.groPosition.x), round3(s.groPosition.y)) + self.line_end
         return self
 
     def declare_signals_for_lines(self, lines):
