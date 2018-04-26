@@ -253,13 +253,113 @@ class Line(object):
     def __str__(self):
         return "{0} -> {1} color={2}".format(self.v0, self.v1, self.color)
 
+groHeader = """
+include gro
+
+set("population_max", 2000);
+
+fun close x y . 
+    if x = 0 | y = 0 then
+        1.1
+    else
+        if x > y then
+            (x / y - 1) 
+        else
+            (y / x - 1) 
+        end
+    end;
+
+MAX_DIFF = 0.5;
+
+"""
+
+class GroPrinter(object):
+    def __init__(self):
+        self._sstream = ''
+        self._indent = 0
+        self._signals = 0
+
+    def genPrologue(self):
+        self.sstream += groHeader
+        return self
+
+    @property
+    def sstream(self):
+        return self._sstream
+
+    @property
+    def indent(self):
+        return self._indent
+
+    @property
+    def signals(self):
+        return self._signals
+
+    @sstream.setter
+    def sstream(self, new_sstream):
+        self._sstream = new_sstream
+
+    @indent.setter
+    def indent(self, new_indent):
+        self._indent = new_indent
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return self.sstream
+
+    @property
+    def line_begin(self):
+        r = ""
+        for i in range(self.indent):
+            r += "    "
+        return r
+
+    @property
+    def line_end(self):
+        return "\n"
+
+    @property
+    def new_line(self):
+        return self.line_end
+
+    def start_program(self, prog):
+        self.sstream += self.line_begin + "program {0}() := {{".format(prog) + self.line_end
+        self.indent += 1
+        return self
+
+    def declare_timer(self):
+        self.sstream += self.line_begin + "p := [ t := 0 ];" + self.line_end
+        self.sstream += self.new_line
+        self.sstream += self.line_begin + "true : { p.t := p.t + dt }" + self.line_end
+        self.sstream += self.new_line
+        return self
+
+    def end_program(self):
+        self.indent -= 1
+        self.sstream += self.line_begin + "};" + self.line_end
+        return self
+
+    @property
+    def predicate_always(self):
+        return "true"
+
+    def start_command(self, pred):
+        ???
+
 class Canvas(object):
     def __init__(self):
         self._lines = []
+        self._program = GroPrinter()
 
     @property
     def lines(self):
         return self._lines
+
+    @property
+    def program(self):
+        return self._program
 
     def drawLine(self, v0, v1, color='green'):
         self.lines.append(Line(v0, v1, color))
@@ -268,7 +368,8 @@ class Canvas(object):
 x = Point(0, 1.25)
 y = Point(0, -0.5)
 l = Line(y, x)
-x = x / 2
-print(l)
-print(l.signals())
-print(l.signalStrength())
+
+p = GroPrinter()
+p.genPrologue().start_program("receiver").declare_timer()
+p.end_program()
+print(p)

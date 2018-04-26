@@ -5,9 +5,9 @@ bhl := signal(5, 0.1);
 
 k := 10; // reporter scaling factor
 
-MAX_SIG := 0.7;
+MAX_SIG := 0.005;
 
-//set("dt", 0.05);
+set("population_max", 2000);
 
 fun abs2 n . if n < 0 then -n else n end;
 
