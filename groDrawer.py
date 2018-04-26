@@ -364,6 +364,10 @@ class GroPrinter(object):
         self.indent += 1
         return self
 
+    def launch_program(self, prog):
+        self.sstream += self.line_begin + "ecoli ( [], program {0}() );".format(prog) + self.line_end
+        return self
+
     def declare_colors(self):
         self.sstream += groColors
         return self
@@ -461,9 +465,14 @@ class GroPrinter(object):
         return self
 
 class Canvas(object):
-    def __init__(self):
+    def __init__(self, name="canvas"):
         self._lines = []
         self._program = GroPrinter()
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def lines(self):
@@ -479,25 +488,25 @@ class Canvas(object):
 
     def drawLine(self, v0, v1, color='green'):
         l = Line(v0, v1, color)
-        l.id = num_lines
+        l.id = self.num_lines
         self.lines.append(l)
         return self
 
+    def codegen(self):
+        p = self.program
+        p.genPrologue().declare_signals_for_lines(self.lines)
+        p.start_program(self.name).declare_colors().declare_timer()
+        p.end_program().blank_line()
+        p.init_signals_for_lines(self.lines)
+        p.launch_program(self.name)
+        return p
+
 x = Point(0, 1.0)
 y = Point(0, -1.0)
-l = Line(y, x)
-l.id = 0
 
-print(l.signals())
+drawer = Canvas()
+drawer.drawLine(y, x)
 
-p = GroPrinter()
-preds = p.line_predicates(l)
-p.genPrologue().declare_signals_for_lines([l])
-p.start_program("receiver").declare_colors().declare_timer()
-p.start_command(preds[0]).set_color(l.color).end_command().blank_line()
-p.start_command(preds[1]).unset_color(l.color).end_command().blank_line()
-p.end_program().blank_line()
-
-p.init_signals_for_lines([l])
+p = drawer.codegen()
 
 print(p)
