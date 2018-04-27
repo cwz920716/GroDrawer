@@ -175,7 +175,7 @@ def lerp(a, b, x):
     return round3(a * (1.0 - x) + b * x)
 
 class Line(object):
-    def __init__ (self, v0, v1, color = 'green'):
+    def __init__ (self, v0, v1, color = 'green', die_outer = False):
         self._v0 = v0
         self._v1 = v1
         if self.length < 0.5:
@@ -184,6 +184,7 @@ class Line(object):
             print("WARNING: line length > 5.0 is too large for gro screen.")
         self._color = color
         self._id = -1
+        self._die_outer = die_outer
 
     @property
     def id(self):
@@ -212,6 +213,10 @@ class Line(object):
     @property
     def color(self):
         return self._color
+
+    @property
+    def die_outer(self):
+        return self._die_outer
 
     @property
     def vector(self):
@@ -298,6 +303,7 @@ fun close x y .
     end;
 
 MAX_DIFF := 0.5;
+DIE_DIFF := 0.75;
 
 """
 
@@ -435,7 +441,10 @@ class GroPrinter(object):
     def line_predicates(self, line):
         p1 = "get_signal({0}) >= {2} & get_signal({1}) >= {2} & close (get_signal({0})) (get_signal({1})) <= MAX_DIFF".format(self.signal_name(line.outer_signal_id), self.signal_name(line.inner_signal_id), line.signalStrength)
         p2 = "get_signal({0}) < {2} | get_signal({1}) < {2} | close (get_signal({0})) (get_signal({1})) > MAX_DIFF".format(self.signal_name(line.outer_signal_id), self.signal_name(line.inner_signal_id), line.signalStrength)
-        return [p1, p2]
+        p3 = ""
+        if line.die_outer:
+            p3 = "close (get_signal({0})) (get_signal({1})) > DIE_DIFF & get_signal({0}) > get_signal({1}) & p.t > 200".format(self.signal_name(line.outer_signal_id), self.signal_name(line.inner_signal_id), line.signalStrength)
+        return [p1, p2, p3]
 
     def intersect(self, preds):
         if len(preds) == 0:
@@ -500,8 +509,8 @@ class Canvas(object):
     def num_lines(self):
         return len(self.lines)
 
-    def drawLine(self, v0, v1, color='green'):
-        l = Line(v0, v1, color)
+    def drawLine(self, v0, v1, color='green', die_outer = False):
+        l = Line(v0, v1, color, die_outer)
         l.id = self.num_lines
         self.lines.append(l)
         return self
@@ -518,6 +527,8 @@ class Canvas(object):
             if c not in unset_color_map:
                 unset_color_map[c] = []
             unset_color_map[c].append(preds[1])
+            if l.die_outer:
+                p.start_command(preds[2]).die().end_command().blank_line()
         for c in unset_color_map:
             pred = p.intersect(unset_color_map[c])
             p.start_command(pred).unset_color(c).end_command().blank_line()
